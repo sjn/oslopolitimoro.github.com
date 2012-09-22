@@ -2,10 +2,10 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://yoursite.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+url: http://oslopolitimoro.github.com
+title: Oslo Politi Moro
+subtitle: Oslo politis beste twitter tweeds
+author: jt
 simple_search: http://google.com/search
 description:
 
