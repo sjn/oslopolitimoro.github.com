@@ -47,19 +47,29 @@ my $HTMLTitle  = $title->as_text();
 my $HTMLText = $searchtext->as_text();
 my $HTMLTime = $tweettimestamp->as_HTML();
 # Get the time stamp out of the line
+$HTMLTime =~ m/title\=\"(\d{1,2}):(\d{1,2})\s(\w{2})\s\-\s(\d{1,2})\s(\w{3})\s(\d{2})\"/i;
+my $hour = $1;
+if ( lc($3) eq "pm" && $hour != 0 ){
+	$hour += 12;
+}
+my $minute = $2;
+print "TOD: $3\n";
+my $day = $4;
+my $year = "20".$6;
 
-# Current problem: Format the time string for the YAML- Header
+my %mon2num = qw(
+    jan 1  feb 2  mar 3  apr 4  may 5  jun 6
+    jul 7  aug 8  sep 9  oct 10 nov 11 dec 12
+);
+my $month = $mon2num{"$5"};
+if ( length($month) eq 1) {$month = "0".$month};
+$HTMLTime = $year."-".$month."-".$day." ".$hour.":".$minute; 
 
-$HTMLTime =~ m/(title\=\"([^\"]+?)\")/;
-$HTMLTime=$2;
-print "timestamp1: $2\n";
-print "timestamp2: $HTMLTime\n";
-$HTMLTime =~ m/(^[0-12]{1})/;
-print $1;
-
+# Current problem:
+# format HTMLTitle output line
 
 # Final output line
-# print $HTMLTime.";".$url.";".$HTMLTitle.";".$HTMLText."\n";
+print $HTMLTime.";".$url.";".$HTMLTitle.";".$HTMLText."\n";
 
 
 
