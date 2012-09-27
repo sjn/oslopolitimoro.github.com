@@ -52,7 +52,7 @@ my ($tweettimestamp) = $tree->look_down(
 );
 
 # Get and format title (without the stupid "Twitter / <account>: "-stuff)
-my $HTMLTitle  = $title->as_text();
+my $HTMLTitle = $title->as_text();
 $HTMLTitle =~ s/^[^\:]+\:\s//i;
 # Get and format the text without leading spaces
 my $HTMLText = $searchtext->as_text();
@@ -73,6 +73,7 @@ my %mon2num = qw(
 );
 my $month = $mon2num{"$5"};
 if ( length($month) eq 1) {$month = "0".$month};
+if ( length($day) eq 1) {$day = "0".$day};
 $HTMLTime = $year."-".$month."-".$day." ".$hour.":".$minute; 
 
 # Final output line
@@ -85,7 +86,7 @@ $tree->delete;
 
 # Some Syntax Reference
 ## Test-tweet
-## https://api.twitter.com/1.1/statuses/show.json?id=250036062792085504
+## http://twitter.com/oslopolitiops/statuses/250036062792085504
 ##
 ## Tag with timestamp of the tweet in HTML
 ## <a class="tweet-timestamp js-permalink js-nav" href="/oslopolitiops/status/250036062792085504" title="5:56 PM - 23 sep 12"><span class="_timestamp js-short-timestamp js-relative-timestamp" data-long-form="true" data-time="1348448217">8t</span></a>
