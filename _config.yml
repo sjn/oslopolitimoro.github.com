@@ -2,9 +2,10 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://oslopolitimoro.github.com
+# url: http://oslopolitimoro.github.com
+url: http:www.oslopolitimoro.no
 title: OsloPolitiMoro
-subtitle: Oslo politis beste twitter tweeds
+subtitle: Oslo politi sin beste twitter tweeds
 author: oslopolitimoro
 simple_search: http://google.com/search
 description:
