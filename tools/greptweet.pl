@@ -73,7 +73,6 @@ my %mon2num = qw(
     jan 1  feb 2  mar 3  apr 4  mai 5  jun 6
     jul 7  aug 8  sep 9  okt 10 nov 11 des 12
 );
-print "month: $5\n";
 my $month = $mon2num{"$5"};
 if ( length($month) eq 1) {$month = "0".$month};
 if ( length($day) eq 1) {$day = "0".$day};
