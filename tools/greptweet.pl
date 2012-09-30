@@ -54,9 +54,11 @@ my ($tweettimestamp) = $tree->look_down(
 # Get and format title (without the stupid "Twitter / <account>: "-stuff)
 my $HTMLTitle = $title->as_text();
 $HTMLTitle =~ s/^[^\:]+\:\s//i;
+$HTMLTitle =~ s/\;/\&#59;/i;
 # Get and format the text without leading spaces
 my $HTMLText = $searchtext->as_text();
 $HTMLText =~ s/^\s+//i;
+$HTMLText =~ s/;/\&#59;/i;
 # Get and format the Tweet timestamp.
 my $HTMLTime = $tweettimestamp->as_HTML();
 $HTMLTime =~ m/title\=\"(\d{1,2}):(\d{1,2})\s(\w{2})\s\-\s(\d{1,2})\s(\w{3})\s(\d{2})\"/i;
@@ -68,16 +70,17 @@ my $minute = $2;
 my $day = $4;
 my $year = "20".$6;
 my %mon2num = qw(
-    jan 1  feb 2  mar 3  apr 4  may 5  jun 6
-    jul 7  aug 8  sep 9  oct 10 nov 11 dec 12
+    jan 1  feb 2  mar 3  apr 4  mai 5  jun 6
+    jul 7  aug 8  sep 9  okt 10 nov 11 des 12
 );
+print "month: $5\n";
 my $month = $mon2num{"$5"};
 if ( length($month) eq 1) {$month = "0".$month};
 if ( length($day) eq 1) {$day = "0".$day};
 $HTMLTime = $year."-".$month."-".$day." ".$hour.":".$minute; 
 
 # Final output line
-print $HTMLTime.";".$url.";".$HTMLTitle.";".$HTMLText."\n";
+print "\"".$HTMLTime."\",\"".$url."\",\"".$HTMLTitle."\",\"".$HTMLText."\"\n";
 
 # Cleanup
 $tree->delete;

@@ -60,9 +60,8 @@ sub output_file {
 	$outputfilename =~ s/\ø*/oe/g;
 	$outputfilename =~ s/\æ*/ae/g;
 	$outputfilename =~ s/\s+/_/g;
-	$outputfilename =~ s/\.+//g;
-	$outputfilename =~ s/\,//g;
-	$outputfilename =~ s/\_$//g;
+	$outputfilename =~ s/_$//g;
+	$outputfilename =~ s/[\;\:\,\.]+//g;	
 	$outputfilename = $outputfilename.".markdown";
 	my $result = open MARKDOWNOUTPUT, '>:encoding(utf8)',$outputfilename;
 	# Write file
@@ -79,7 +78,7 @@ my $result = GetOptions (
 					 );
 
 # Read CSV File
-my $csvfile = Text::CSV->new({sep_char=> ';'});
+my $csvfile = Text::CSV->new({sep_char=> ',', quote_char => '"'});
 $result = open CSVINPUT, '<:encoding(utf8)', "$pathinputfile";
 if (! $result) {
 	usage();
@@ -102,3 +101,5 @@ while (<CSVINPUT>){
 
 # Remaining Tasks
 # * kill annoying special characters in the filenames, e.g. å,ø,æ. The Regex doesn't get them somehow.
+# * Write syntax for creating links in markdownfiles
+# * Kill trailing underscores from filenames
