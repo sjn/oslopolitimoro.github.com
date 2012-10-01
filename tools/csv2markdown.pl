@@ -29,8 +29,6 @@ sub usage {								# Routine prints the Syntax
 	script: -i|inputfile <input.csv>\n";
 }
 
-
-
 # Tweet template layout as constant $tweettemplace
 use constant TWEETTEMPLATE => "---
 layout: post
@@ -52,17 +50,19 @@ sub output_file {
 	my $outputfilecontent = TWEETTEMPLATE;
 	$outputfilecontent =~ s/\<tweettitle\>/$_[2]/ig;
 	$outputfilecontent =~ s/\<timestamp\>/$_[0]/ig;
+	# make markdownlinks of the text if available
+	$_[3]                 =~ s/\s(http\:\/\/[^\s]+)/ \[$1\]\($1\)/;	
 	$outputfilecontent =~ s/\<tweettext\>/$_[3]/ig;
 	$outputfilecontent =~ s/\<tweetlink\>/$_[1]/ig;	
 	my $outputfilename = ($_[0]."-".lc($_[2]));
-	$outputfilename =~ s/\s\d{1,2}:\d{2}//;
-	$outputfilename =~ s/\å/aa/g;
-	$outputfilename =~ s/\ø*/oe/g;
-	$outputfilename =~ s/\æ*/ae/g;
-	$outputfilename =~ s/\s+/_/g;
-	$outputfilename =~ s/_$//g;
-	$outputfilename =~ s/[\;\:\,\.]+//g;	
-	$outputfilename = $outputfilename.".markdown";
+	$outputfilename    =~ s/\s\d{1,2}:\d{2}//;
+	$outputfilename    =~ s/\å/aa/g;
+	$outputfilename    =~ s/\ø*/oe/g;
+	$outputfilename    =~ s/\æ*/ae/g;
+	$outputfilename    =~ s/\s+/_/g;	
+	$outputfilename    =~ s/[\;\:\,\.]+//g;
+	$outputfilename    =~ s/\_$//ig;	
+	$outputfilename    = $outputfilename.".markdown";
 	my $result = open MARKDOWNOUTPUT, '>:encoding(utf8)',$outputfilename;
 	# Write file
 	print MARKDOWNOUTPUT $outputfilecontent;
@@ -82,7 +82,7 @@ my $csvfile = Text::CSV->new({sep_char=> ',', quote_char => '"'});
 $result = open CSVINPUT, '<:encoding(utf8)', "$pathinputfile";
 if (! $result) {
 	usage();
-	print "=> Error: Can't find csv file. Abort.\n\n";
+	print "=> Error: Can't find csv file: '$!'. Abort.\n\n";
 }
 
 seek CSVINPUT,0,0;
@@ -101,5 +101,9 @@ while (<CSVINPUT>){
 
 # Remaining Tasks
 # * kill annoying special characters in the filenames, e.g. å,ø,æ. The Regex doesn't get them somehow.
-# * Write syntax for creating links in markdownfiles
-# * Kill trailing underscores from filenames
+#	use: http://search.cpan.org/~mpiotr/Text-Iconv-1.7/Iconv.pm for converting to utf8, maybe that helps
+# * Check if Text::CSV kan åpne og bruke inputfilen
+
+# To read:
+# * http://perltidy.sourceforge.net/tutorial.html
+# * Perl::Tidy
