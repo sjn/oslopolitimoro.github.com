@@ -5,7 +5,7 @@
 # a csv line.
 #
 # Requires HTML::Treebuilder
-# 
+#
 # Syntax:
 #	perl greptweet.pl <url>
 # Example:
@@ -19,8 +19,8 @@ use strict;
 use LWP::UserAgent;
 use HTML::TreeBuilder;
 
-sub usage {								# Routine prints the Syntax
-	print "\n\nSyntax:
+sub usage {    # Routine prints the Syntax
+    print "\n\nSyntax:
 		script.pl: Tweet-URL
 	Example: 
 		perl script.pl https://api.twitter.com/1.1/statuses/show.json?id=250036062792085504
@@ -28,63 +28,75 @@ sub usage {								# Routine prints the Syntax
 }
 
 usage() && die "\n => Error: no URL specified. Abort.\n\n"
-	unless ( @ARGV == 1);
+  unless ( @ARGV == 1 );
 
 # Get HTML Tweet from TWitter
 my $ua = new LWP::UserAgent;
 $ua->timeout(120);
-my $url = @ARGV[0];
-my $request = new HTTP::Request('GET', $url);
-my $response = $ua->request($request);
+my $url         = @ARGV[0];
+my $request     = new HTTP::Request( 'GET', $url );
+my $response    = $ua->request($request);
 my $HTMLcontent = $response->content();
 
 # Parse HTMLcontent
 my $tree = HTML::TreeBuilder->new_from_content($HTMLcontent);
 $tree->parse($HTMLcontent);
+
 # Get Tweet Title
-my ($title) = $tree->look_down('_tag','title');
+my ($title) = $tree->look_down( '_tag', 'title' );
+
 # Get Tweet Text
-my ($searchtext) = $tree->look_down('class','js-tweet-text');
+my ($searchtext) = $tree->look_down( 'class', 'js-tweet-text' );
+
 # Get Tweet Timestamp line
 my ($tweettimestamp) = $tree->look_down(
-	'tag','a' and
-	'class','tweet-timestamp js-permalink js-nav'	
+    'tag',
+    'a' and 'class',
+    'tweet-timestamp js-permalink js-nav'
 );
 
 # Get and format title (without the stupid "Twitter / <account>: "-stuff)
 my $HTMLTitle = $title->as_text();
 $HTMLTitle =~ s/^[^\:]+\:\s//i;
 $HTMLTitle =~ s/\;/\&#59;/i;
+
 # Get and format the text without leading spaces
 my $HTMLText = $searchtext->as_text();
 $HTMLText =~ s/^\s+//i;
 $HTMLText =~ s/;/\&#59;/i;
+
 # Get and format the Tweet timestamp.
 my $HTMLTime = $tweettimestamp->as_HTML();
-$HTMLTime =~ m/title\=\"(\d{1,2}):(\d{1,2})\s(\w{2})\s\-\s(\d{1,2})\s(\w{3})\s(\d{2})\"/i;
+$HTMLTime =~
+  m/title\=\"(\d{1,2}):(\d{1,2})\s(\w{2})\s\-\s(\d{1,2})\s(\w{3})\s(\d{2})\"/i;
 my $hour = $1;
-if ( lc($3) eq "pm" && $hour != 0 ){
-	$hour += 12;
+if ( lc($3) eq "pm" && $hour < 12 ) {
+    $hour += 12;
 }
-my $minute = $2;
-my $day = $4;
-my $year = "20".$6;
+elsif ( lc($3) eq "pm" && $hour == "12" ) {
+    $hour = "00";
+}
+my $minute  = $2;
+my $day     = $4;
+my $year    = "20" . $6;
 my %mon2num = qw(
-    jan 1  feb 2  mar 3  apr 4  mai 5  jun 6
-    jul 7  aug 8  sep 9  okt 10 nov 11 des 12
+  jan 1  feb 2  mar 3  apr 4  mai 5  jun 6
+  jul 7  aug 8  sep 9  okt 10 nov 11 des 12
 );
 my $month = $mon2num{"$5"};
-if ( length($month) eq 1) {$month = "0".$month};
-if ( length($day) eq 1) {$day = "0".$day};
-$HTMLTime = $year."-".$month."-".$day." ".$hour.":".$minute; 
+if ( length($month) eq 1 ) { $month = "0" . $month }
+if ( length($day)   eq 1 ) { $day   = "0" . $day }
+$HTMLTime = $year . "-" . $month . "-" . $day . " " . $hour . ":" . $minute;
 
 # Final output line
-print "\"".$HTMLTime."\",\"".$url."\",\"".$HTMLTitle."\",\"".$HTMLText."\"\n";
+print "\""
+  . $HTMLTime . "\",\""
+  . $url . "\",\""
+  . $HTMLTitle . "\",\""
+  . $HTMLText . "\"\n";
 
 # Cleanup
 $tree->delete;
-
-
 
 # Some Syntax Reference
 ## Test-tweet
