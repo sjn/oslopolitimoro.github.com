@@ -20,6 +20,7 @@ use Getopt::Long;    # Handling parameters.
 use Text::CSV;       # CSV file handling.
 use Text::Iconv;     # Converting Strings for special characters.
 use File::Slurp;
+use utf8;
 
 use v5.10.1;
 
@@ -61,39 +62,29 @@ sub usage {          # Routine prints the Syntax
 
 
 sub output_file {
+    my( $date, $link, $title, $text ) = @_;
 
-    # Date:  $_[0]
-    # Link:  $_[1]
-    # Title: $_[2]
-    # Text:  $_[3]
-    my $outputfilecontent = read_file(\*DATA);
-    $outputfilecontent =~ s/\<tweettitle\>/$_[2]/ig;
-    $outputfilecontent =~ s/\<timestamp\>/$_[0]/ig;
+    my $content = read_file(\*DATA);  # Get template from __DATA__
+    $content =~ s/\<tweettitle\>/$title/ig;
+    $content =~ s/\<timestamp\>/$date/ig;
+    $content =~ s/\<tweettext\>/$text/ig;
+    $content =~ s/\<tweetlink\>/$link/ig;
 
-    $_[3] =~ s/\s(http\:\/\/[^\s]+)/ \[$1\]\($1\)/
-      ;    # make markdownlinks of the text if available
-    $outputfilecontent =~ s/\<tweettext\>/$_[3]/ig;
-    $outputfilecontent =~ s/\<tweetlink\>/$_[1]/ig;
-
-# We need to run this conversion, otherwise reg-ex will not match the special chars. God knows why.
-    my $converter = Text::Iconv->new( "utf-8", "utf-8" );
-    $_[2] = $converter->convert( $_[2] );
+    # Make markdownlinks of the text if available
+    $text =~ s/\s(http\:\/\/[^\s]+)/ \[$1\]\($1\)/;
 
     # Build up filename and remove everything that doesn't belong there.
-    my $outputfilename = ( $_[0] . "-" . lc( $_[2] ) );
-    $outputfilename =~ s/\s\d{1,2}:\d{2}//;
-    $outputfilename =~ s/\å/aa/gi;
-    $outputfilename =~ s/\ø*/oe/gi;
-    $outputfilename =~ s/\æ*/ae/gi;
-    $outputfilename =~ s/\s+/_/g;
-    $outputfilename =~ s/[\;\:\,\.]+//g;
-    $outputfilename =~ s/\_$//ig;
-    $outputfilename = $outputfilename . ".markdown";
-    my $result = open MARKDOWNOUTPUT, '>:encoding(utf8)', $outputfilename;
+    my $filename = $date . "-" . lc( $title );
+    $filename =~ s/\s\d{1,2}:\d{2}//;
+    $filename =~ s/å/aa/gi;
+    $filename =~ s/ø/oe/gi;
+    $filename =~ s/æ/ae/gi;
+    $filename =~ s/\s+/_/g;
+    $filename =~ s/[\;\:\,\.]+//g;
+    $filename =~ s/\_+$//ig;
+    $filename .= ".mkd";
 
-    # Write file
-    print MARKDOWNOUTPUT $outputfilecontent;
-    close MARKDOWNOUTPUT;
+    write_file( $filename, { binmode => ':utf8'}, $content );
 }
 
 
