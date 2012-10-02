@@ -7,36 +7,58 @@
 # Requires Text::CSV, Getopt::Long, Text::Iconv,
 #
 # Syntax:
-#	perl csv2markdown.pl -i <csvinputfile> [-o destination]
+#	perl csv2markdown.pl -i <csvinputfile>
 # Example:
-#	perl csv2markdown.pl -i tweetsources.csv -o ./output
+#	perl csv2markdown.pl -i tweetsources.csv
 # Output:
-#	STDI: None, creates markdown files in the current folder though.
+#	STDOUT: None, creates markdown files in the current folder though.
 #
 # ------------------------------------------------------------------------
 use strict;
 use warnings;
 use Getopt::Long;    # Handling parameters.
-Getopt::Long::Configure('bundling');
 use Text::CSV;       # CSV file handling.
 use Text::Iconv;     # Converting Strings for special characters.
+use File::Slurp;
 
-sub usage {          # Routine prints the Syntax
-    print "Syntax:
-	script: -i|inputfile <input.csv>\n";
+use v5.10.1;
+
+
+Getopt::Long::Configure('bundling');
+
+die usage("Error: not enough parameters specified. Aborting.")
+  unless @ARGV;
+
+# Get parameters
+GetOptions( 'i|inputfile=s' => \my $pathinputfile, );
+
+# Read CSV File
+my $csv_content = read_file($pathinputfile, { binmode => ':utf8' })
+  || die usage("Error: Can't read csv file: '$!'. Aborting.");
+
+my $csv = Text::CSV->new( { sep_char => ',', quote_char => '"' } );
+my @content = split /\n/, $csv_content;
+while ( my $line = shift @content ) {
+    next if $line =~ m/^#/;
+    if ( ! $csv->parse($line) ) {
+       warn "Failed to parse line: " . $csv->error_input;
+       next;
+    }
+    my @fields_in_tweet = $csv->fields();
+    output_file(@fields_in_tweet);
 }
 
-# Tweet template layout as constant $tweettemplace
-use constant TWEETTEMPLATE => "---
-layout: post
-title: \"<tweettitle>\"
-date: <timestamp>
-comments: true
-categories: 
----
-> <tweettext>
-- [Operasjonssentralen](<tweetlink>)
-";
+
+sub usage {          # Routine prints the Syntax
+    my $error_msg = shift // "";
+    my $usage = "Syntax:
+	$0: -i|inputfile <input.csv>\n";
+
+    $error_msg = "\nError: $error_msg\n\n" if $error_msg;
+
+    return $usage . $error_msg;
+}
+
 
 sub output_file {
 
@@ -44,7 +66,7 @@ sub output_file {
     # Link:  $_[1]
     # Title: $_[2]
     # Text:  $_[3]
-    my $outputfilecontent = TWEETTEMPLATE;
+    my $outputfilecontent = read_file(\*DATA);
     $outputfilecontent =~ s/\<tweettitle\>/$_[2]/ig;
     $outputfilecontent =~ s/\<timestamp\>/$_[0]/ig;
 
@@ -74,31 +96,14 @@ sub output_file {
     close MARKDOWNOUTPUT;
 }
 
-usage() && die "\n => Error: not enough parameters specified. Abort.\n\n"
-  unless ( @ARGV > 0 );
 
-# Get parameters
-my $result = GetOptions( 'i|inputfile=s' => \my $pathinputfile, );
-
-# Read CSV File
-$result = open CSVINPUT, '<:encoding(utf8)', "$pathinputfile";
-
-usage() && die "=> Error: Can't find csv file: '$!'. Abort.\n\n"
-  unless ($result);
-
-my $csvfile = Text::CSV->new( { sep_char => ',', quote_char => '"' } );
-while (<CSVINPUT>) {
-    if ( $csvfile->parse($_) ) {
-        my @columns = $csvfile->fields();
-        if ( !$columns[0] eq '' && $columns[0] =~ /^[^#]+/ )
-        {    # Ignore empty or commented rows.
-            output_file(@columns);
-        }
-    }
-    else {
-        my $err = $csvfile->error_input;
-        print "Failed to parse line: $err";
-    }
-
-}
-close CSVINPUT;
+__DATA__
+---
+layout: post
+title: "<tweettitle>"
+date: <timestamp>
+comments: true
+categories: 
+---
+> <tweettext>
+- [Operasjonssentralen](<tweetlink>)
